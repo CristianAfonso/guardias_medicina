@@ -67,3 +67,12 @@ input{
   align-items: center;
   column-gap: 10px;
 }
+.guardia {
+  background-color: rgb(255, 177, 177) !important;
+  color: black !important;
+}
+
+.descanso {
+  background-color: rgb(177, 255, 177) !important;
+  color: black !important;
+}

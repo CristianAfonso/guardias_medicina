@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css'; // Importa los estilos del calendario
-import { v4 as uuidv4 } from 'uuid'; // Para generar IDs únicos
+import 'react-calendar/dist/Calendar.css';
+import { v4 as uuidv4 } from 'uuid'; 
 
 const App = () => {
   const [guardias, setGuardias] = useState(() => {
@@ -15,7 +15,7 @@ const App = () => {
     centro: '',
     especialidad: '',
   });
-  const [editId, setEditId] = useState(null); // Para manejar la edición de guardias
+  const [editId, setEditId] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('guardiasData', JSON.stringify(guardias));
@@ -23,9 +23,9 @@ const App = () => {
 
   const agregarGuardia = () => {
     if (newGuardia.horas_de_guardia && newGuardia.centro && newGuardia.especialidad) {
-      const id = editId || uuidv4(); // Genera un ID único o usa el existente si estamos editando
+      const id = editId || uuidv4();
       const nuevaGuardia = {
-        día: selectedDate.toISOString().split('T')[0], // Convertir a YYYY-MM-DD
+        dia: selectedDate.toISOString().split('T')[0],
         horas_de_guardia: newGuardia.horas_de_guardia,
         centro: newGuardia.centro,
         especialidad: newGuardia.especialidad,
@@ -61,19 +61,47 @@ const App = () => {
       centro: guardia.centro,
       especialidad: guardia.especialidad,
     });
-    setSelectedDate(new Date(guardia.día));
+    setSelectedDate(new Date(guardia.dia));
     setEditId(id);
+  };
+
+  const esDiaDescanso = (fecha) => {
+    const diaSemana = fecha.getDay(); 
+    if (diaSemana === 5) return false;
+    if (diaSemana === 6 || diaSemana === 0) return true;
+    return true;
+  };
+
+  const tileClassName = ({ date, view }) => {
+    if (view === 'month') {
+
+      const guardiaDias = Object.values(guardias.Guardias.Mes).map((guardia) => guardia.dia);
+      if (guardiaDias.includes(date.toISOString().split('T')[0])) {
+        return 'guardia';
+      }
+
+      for (let key in guardias.Guardias.Mes) {
+        const guardia = guardias.Guardias.Mes[key];
+        const fechaGuardia = new Date(guardia.dia);
+        const diaSiguiente = new Date(fechaGuardia);
+        diaSiguiente.setDate(fechaGuardia.getDate() + 1);
+
+        if (esDiaDescanso(diaSiguiente) && date.toISOString().split('T')[0] === diaSiguiente.toISOString().split('T')[0]) {
+          return 'descanso';
+        }
+      }
+    }
+    return null;
   };
 
   return (
     <div id="content">
-      <h1>Organización de Guardias Claudia García-Granados Robayna</h1>
-      
+      <h1>Organización de Guardias Médicas</h1>
       <Calendar
         onChange={setSelectedDate}
         value={selectedDate}
+        tileClassName={tileClassName} // Aplicar las clases CSS
       />
-
       <div id="form">
         <p>Fecha seleccionada: {selectedDate.toISOString().split('T')[0]}</p>
         <input
@@ -98,12 +126,11 @@ const App = () => {
           {editId ? 'Actualizar Guardia' : 'Agregar Guardia'}
         </button>
       </div>
-
-      <ul id="guardias-list">
-      <h2 style={{margin: ' 0 auto 15px auto'}}>Guardias</h2>
+      <ul id="guardias-list"> 
+        <h2>Guardias del Mes</h2>
         {Object.keys(guardias.Guardias.Mes).map((id) => (
           <li key={id}>
-            {`${guardias.Guardias.Mes[id].día} - ${guardias.Guardias.Mes[id].horas_de_guardia} horas en ${guardias.Guardias.Mes[id].centro} (${guardias.Guardias.Mes[id].especialidad})`}
+            {`${guardias.Guardias.Mes[id].dia} - ${guardias.Guardias.Mes[id].horas_de_guardia} horas en ${guardias.Guardias.Mes[id].centro} (${guardias.Guardias.Mes[id].especialidad})`}
             <button onClick={() => editarGuardia(id)}>Editar</button>
             <button onClick={() => eliminarGuardia(id)}>Eliminar</button>
           </li>
