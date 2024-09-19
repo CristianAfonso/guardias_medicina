@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/guardias_medicina/static/css/main.0e165f2f.css",
-    "main.js": "/guardias_medicina/static/js/main.3ddb29a8.js",
+    "main.css": "/guardias_medicina/static/css/main.b73aa945.css",
+    "main.js": "/guardias_medicina/static/js/main.80f64641.js",
     "static/js/453.911d599f.chunk.js": "/guardias_medicina/static/js/453.911d599f.chunk.js",
     "index.html": "/guardias_medicina/index.html",
-    "main.0e165f2f.css.map": "/guardias_medicina/static/css/main.0e165f2f.css.map",
-    "main.3ddb29a8.js.map": "/guardias_medicina/static/js/main.3ddb29a8.js.map",
+    "main.b73aa945.css.map": "/guardias_medicina/static/css/main.b73aa945.css.map",
+    "main.80f64641.js.map": "/guardias_medicina/static/js/main.80f64641.js.map",
     "453.911d599f.chunk.js.map": "/guardias_medicina/static/js/453.911d599f.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.0e165f2f.css",
-    "static/js/main.3ddb29a8.js"
+    "static/css/main.b73aa945.css",
+    "static/js/main.80f64641.js"
   ]
 }
