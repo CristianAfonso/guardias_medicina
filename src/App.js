@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { v4 as uuidv4 } from 'uuid'; 
-
+import GuardiaForm from './components/guardia_form';
+import './styles.css'
 const App = () => {
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [guardias, setGuardias] = useState(() => {
     const saved = localStorage.getItem('guardiasData');
     return saved ? JSON.parse(saved) : { Guardias: { Mes: {} } };
   });
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [newGuardia, setNewGuardia] = useState({
     horas_de_guardia: '',
     centro: '',
@@ -17,35 +18,13 @@ const App = () => {
   });
   const [editId, setEditId] = useState(null);
 
-  useEffect(() => {
-    localStorage.setItem('guardiasData', JSON.stringify(guardias));
-  }, [guardias]);
-
-  const agregarGuardia = () => {
-    if (newGuardia.horas_de_guardia && newGuardia.centro && newGuardia.especialidad) {
-      const id = editId || uuidv4();
-      const nuevaGuardia = {
-        dia: selectedDate.toISOString().split('T')[0],
-        horas_de_guardia: newGuardia.horas_de_guardia,
-        centro: newGuardia.centro,
-        especialidad: newGuardia.especialidad,
-      };
-
-      setGuardias((prev) => ({
-        ...prev,
-        Guardias: {
-          ...prev.Guardias,
-          Mes: {
-            ...prev.Guardias.Mes,
-            [id]: nuevaGuardia,
-          },
-        },
-      }));
-      setNewGuardia({ horas_de_guardia: '', centro: '', especialidad: '' });
-      setEditId(null);
-    }
+  const esDiaDescanso = (fecha) => {
+    const diaSemana = fecha.getDay(); 
+    if (diaSemana === 4) return false;
+    if (diaSemana === 6 || diaSemana === 0) return true;
+    return true;
   };
-
+    
   const eliminarGuardia = (id) => {
     setGuardias((prev) => {
       const updatedMes = { ...prev.Guardias.Mes };
@@ -65,13 +44,6 @@ const App = () => {
     setEditId(id);
   };
 
-  const esDiaDescanso = (fecha) => {
-    const diaSemana = fecha.getDay(); 
-    if (diaSemana === 5) return false;
-    if (diaSemana === 6 || diaSemana === 0) return true;
-    return true;
-  };
-
   const tileClassName = ({ date, view }) => {
     if (view === 'month') {
 
@@ -84,9 +56,9 @@ const App = () => {
         const guardia = guardias.Guardias.Mes[key];
         const fechaGuardia = new Date(guardia.dia);
         const diaSiguiente = new Date(fechaGuardia);
-        diaSiguiente.setDate(fechaGuardia.getDate() + 1);
+        diaSiguiente.setDate(fechaGuardia.getDay() === 5 ? fechaGuardia.getDate() + 2 : fechaGuardia.getDate() + 1);
 
-        if (esDiaDescanso(diaSiguiente) && date.toISOString().split('T')[0] === diaSiguiente.toISOString().split('T')[0]) {
+        if (esDiaDescanso(fechaGuardia) && date.toISOString().split('T')[0] === diaSiguiente.toISOString().split('T')[0]) {
           return 'descanso';
         }
       }
@@ -95,47 +67,43 @@ const App = () => {
   };
 
   return (
-    <div id="content">
+    <div id="content-wrapper">
       <h1>Organización de Guardias Médicas</h1>
-      <Calendar
-        onChange={setSelectedDate}
-        value={selectedDate}
-        tileClassName={tileClassName} // Aplicar las clases CSS
-      />
-      <div id="form">
-        <p>Fecha seleccionada: {selectedDate.toISOString().split('T')[0]}</p>
-        <input
-          type="number"
-          placeholder="Horas de guardia"
-          value={newGuardia.horas_de_guardia}
-          onChange={(e) => setNewGuardia({ ...newGuardia, horas_de_guardia: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Centro"
-          value={newGuardia.centro}
-          onChange={(e) => setNewGuardia({ ...newGuardia, centro: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Especialidad"
-          value={newGuardia.especialidad}
-          onChange={(e) => setNewGuardia({ ...newGuardia, especialidad: e.target.value })}
-        />
-        <button onClick={agregarGuardia}>
-          {editId ? 'Actualizar Guardia' : 'Agregar Guardia'}
-        </button>
+      <div id="content">
+        <div id="control-wrapper">
+          <Calendar  className='container'
+            onChange={setSelectedDate}
+            value={selectedDate}
+            tileClassName={tileClassName}
+          />
+          <GuardiaForm 
+            guardias={guardias}
+            newGuardia={newGuardia}
+            editId={editId}
+            selectedDate={selectedDate}
+            setGuardias={setGuardias}
+            setNewGuardia={setNewGuardia}
+            setEditId={setEditId}/>
+        </div>
+        <div id="guardias-wrapper"  className='container'>
+          <div id="guardias-title">
+            <h2>Guardias del Mes</h2>
+            <hr></hr>
+          </div>
+          <div id="guardias-list"> 
+            {Object.keys(guardias.Guardias.Mes).map((id) => (
+              <div className='guardia-card container' key={id}>
+                {console.log(guardias.Guardias.Mes[id])}
+                {`${guardias.Guardias.Mes[id].dia} - ${guardias.Guardias.Mes[id].horas_de_guardia} horas en ${guardias.Guardias.Mes[id].centro} (${guardias.Guardias.Mes[id].especialidad})`}
+                <div className='button-group'>
+                  <button className="button" onClick={() => editarGuardia(id)}>Editar</button>
+                  <button className="button" onClick={() => eliminarGuardia(id)}>Eliminar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-      <ul id="guardias-list"> 
-        <h2>Guardias del Mes</h2>
-        {Object.keys(guardias.Guardias.Mes).map((id) => (
-          <li key={id}>
-            {`${guardias.Guardias.Mes[id].dia} - ${guardias.Guardias.Mes[id].horas_de_guardia} horas en ${guardias.Guardias.Mes[id].centro} (${guardias.Guardias.Mes[id].especialidad})`}
-            <button onClick={() => editarGuardia(id)}>Editar</button>
-            <button onClick={() => eliminarGuardia(id)}>Eliminar</button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 };
